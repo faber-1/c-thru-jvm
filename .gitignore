@@ -1,0 +1,6 @@
+# output folder for compilation
+bin
+
+# java stuff
+*.java
+*.class
