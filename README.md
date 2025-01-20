@@ -1,4 +1,4 @@
-# C-through JVM Bytecode parser
+# C-thru JVM Bytecode parser
 
 Hello! Welcome to my little parser project. I am implementing a parser for Java class files in C to process them into the different components of a class file. There's a chance I try to turn this to a full bytecode interpreter for JVM, but that's something I will decide later.
 
