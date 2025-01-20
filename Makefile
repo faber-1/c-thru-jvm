@@ -11,3 +11,6 @@ bin/parse_jvm.o: src/parse_jvm.c src/types.h bin
 
 bin:
 	mkdir bin
+
+clean:
+	-rm -rf bin
