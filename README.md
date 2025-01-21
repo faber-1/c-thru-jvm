@@ -5,3 +5,5 @@ Hello! Welcome to my little parser project. I am implementing a parser for Java 
 Running `make` will create a `bin` folder with a `parse_jvm` executable. You pass one class file to this and it will print out the class file details.
 
 **This is not done yet. I have yet to cover all of the class file format and I've also yet to deal with memory leaks. Oops.** I am mainly posting this if anyone's curious and has suggestions :>
+
+**Also, this code is written for little endian machines.**
