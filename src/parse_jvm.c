@@ -1,15 +1,8 @@
 #include <stdio.h>
 #include <stdlib.h>
+#include <arpa/inet.h>
 
 #include "types.h"
-
-// for swapping endianness of 2 bytes
-#define ENDIAN_16(i) ((((i) >> 8) & 0xff) | (((i) << 8) & 0xff00))
-
-// for swapping endianness of 4 bytes
-#define ENDIAN_32(i)                                                           \
-  ((((i) >> 24) & 0xff) | (((i) << 8) & 0xff0000) | (((i) >> 8) & 0xff00) |    \
-   (((i) << 24) & 0xff000000))
 
 #define READ_FIELD(file, cons, size, mssg)                                     \
   if (fread(&cons, size, 1, file) != 1) {                                      \
@@ -30,7 +23,7 @@ int parse_constant(FILE *f, cp_info *c) {
 
     READ_FIELD(f, c->CONSTANT_Class.name_index, 2,
                "Trouble getting name_index in Class constant");
-    c->CONSTANT_Class.name_index = ENDIAN_16(c->CONSTANT_Class.name_index);
+    c->CONSTANT_Class.name_index = ntohs(c->CONSTANT_Class.name_index);
     printf("\t\tname index: %d\n", c->CONSTANT_Class.name_index);
     break;
   case 9: // CONSTANT_Fieldref
@@ -39,13 +32,13 @@ int parse_constant(FILE *f, cp_info *c) {
     READ_FIELD(f, c->CONSTANT_Fieldref.class_index, 2,
                "Trouble getting class_index in Fieldref constant");
     c->CONSTANT_Fieldref.class_index =
-        ENDIAN_16(c->CONSTANT_Fieldref.class_index);
+        ntohs(c->CONSTANT_Fieldref.class_index);
     printf("\t\tclass index: %d\n", c->CONSTANT_Fieldref.class_index);
 
     READ_FIELD(f, c->CONSTANT_Fieldref.name_and_type_index, 2,
                "Trouble getting name_and_type_index in Fieldref constant");
     c->CONSTANT_Fieldref.name_and_type_index =
-        ENDIAN_16(c->CONSTANT_Fieldref.name_and_type_index);
+        ntohs(c->CONSTANT_Fieldref.name_and_type_index);
     printf("\t\tname and type index: %d\n", c->CONSTANT_Fieldref.name_and_type_index);
     break;
   case 10: // CONSTANT_Methodref
@@ -54,13 +47,13 @@ int parse_constant(FILE *f, cp_info *c) {
     READ_FIELD(f, c->CONSTANT_Methodref.class_index, 2,
                "Trouble getting class_index in Methodref constant");
     c->CONSTANT_Methodref.class_index =
-        ENDIAN_16(c->CONSTANT_Methodref.class_index);
+        ntohs(c->CONSTANT_Methodref.class_index);
     printf("\t\tclass index: %d\n", c->CONSTANT_Methodref.class_index);
 
     READ_FIELD(f, c->CONSTANT_Methodref.name_and_type_index, 2,
                "Trouble getting name_and_type_index in Methodref constant");
     c->CONSTANT_Methodref.name_and_type_index =
-        ENDIAN_16(c->CONSTANT_Methodref.name_and_type_index);
+        ntohs(c->CONSTANT_Methodref.name_and_type_index);
     printf("\t\tname and type index: %d\n", c->CONSTANT_Methodref.name_and_type_index);
     break;
   case 11: // CONSTANT_InterfaceMethodref
@@ -69,20 +62,20 @@ int parse_constant(FILE *f, cp_info *c) {
     READ_FIELD(f, c->CONSTANT_InterfaceMethodref.class_index, 2,
                "Trouble getting class_index in InterfaceMethodref constant");
     c->CONSTANT_InterfaceMethodref.class_index =
-        ENDIAN_16(c->CONSTANT_InterfaceMethodref.class_index);
+        ntohs(c->CONSTANT_InterfaceMethodref.class_index);
     printf("\t\tclass index: %d\n", c->CONSTANT_InterfaceMethodref.class_index);
 
     READ_FIELD(f, c->CONSTANT_InterfaceMethodref.name_and_type_index, 2,
                "Trouble getting name_and_type_index in InterfaceMethodref constant");
     c->CONSTANT_InterfaceMethodref.name_and_type_index =
-        ENDIAN_16(c->CONSTANT_InterfaceMethodref.name_and_type_index);
+        ntohs(c->CONSTANT_InterfaceMethodref.name_and_type_index);
     printf("\t\tname and type index: %d\n", c->CONSTANT_InterfaceMethodref.name_and_type_index);
     break;
   case 8: // CONSTANT_String
     printf("\tCONSTANT_String:\n");
     READ_FIELD(f, c->CONSTANT_String.string_index, 2,
                "Trouble getting string_index in String constant");
-    c->CONSTANT_String.string_index = ENDIAN_16(c->CONSTANT_String.string_index);
+    c->CONSTANT_String.string_index = ntohs(c->CONSTANT_String.string_index);
     printf("\t\tstring index: %d\n", c->CONSTANT_String.string_index);
     break;
   case 3: // CONSTANT_Integer
@@ -105,9 +98,9 @@ int parse_constant(FILE *f, cp_info *c) {
                "Trouble finding name_index tag in NameAndType constant");
 
     c->CONSTANT_NameAndType.name_index =
-        ENDIAN_16(c->CONSTANT_NameAndType.name_index);
+        ntohs(c->CONSTANT_NameAndType.name_index);
     c->CONSTANT_NameAndType.descriptor_index =
-        ENDIAN_16(c->CONSTANT_NameAndType.descriptor_index);
+        ntohs(c->CONSTANT_NameAndType.descriptor_index);
     printf("\t\tname index: %d\n", c->CONSTANT_NameAndType.name_index);
     printf("\t\tdescriptor index: %d\n",
            c->CONSTANT_NameAndType.descriptor_index);
@@ -116,7 +109,7 @@ int parse_constant(FILE *f, cp_info *c) {
     printf("\tCONSTANT_Utf8:\n");
     READ_FIELD(f, c->CONSTANT_Utf8.length, 2,
                "Trouble getting length of Utf8 constant");
-    c->CONSTANT_Utf8.length = ENDIAN_16(c->CONSTANT_Utf8.length);
+    c->CONSTANT_Utf8.length = ntohs(c->CONSTANT_Utf8.length);
     c->CONSTANT_Utf8.bytes = calloc(c->CONSTANT_Utf8.length, sizeof(uint8_t) + 1);
     printf("\t\tlength: %d\n", c->CONSTANT_Utf8.length);
 
@@ -150,7 +143,7 @@ int parse_constant(FILE *f, cp_info *c) {
 int parse_class_file(FILE *f, class_file *c) {
   // get magic
   READ_FIELD(f, c->magic, 4, "Trouble reading magic");
-  c->magic = ENDIAN_32(c->magic);
+  c->magic = ntohl(c->magic);
 
   // the magic for class files is 0xCAFEBABE.
   if (c->magic != 0xCAFEBABE) {
@@ -161,17 +154,17 @@ int parse_class_file(FILE *f, class_file *c) {
 
   // get minor version
   READ_FIELD(f, c->minor_version, 2, "Trouble reading minor_version");
-  c->minor_version = ENDIAN_16(c->minor_version);
+  c->minor_version = ntohs(c->minor_version);
   printf("minor version: %d\n", c->minor_version);
 
   // get major version
   READ_FIELD(f, c->major_version, 2, "Trouble reading major_version");
-  c->major_version = ENDIAN_16(c->major_version);
+  c->major_version = ntohs(c->major_version);
   printf("major version: %d\n", c->major_version);
 
   // get constant pool count
   READ_FIELD(f, c->constant_pool_count, 2, "Trouble reading constant_pool_count");
-  c->constant_pool_count = ENDIAN_16(c->constant_pool_count);
+  c->constant_pool_count = ntohs(c->constant_pool_count);
   printf("constant pool count: %d\n", c->constant_pool_count);
 
   // get constant pool
@@ -193,32 +186,32 @@ int parse_class_file(FILE *f, class_file *c) {
   }
 
   READ_FIELD(f, c->access_flags, 2, "Trouble reading access_flags");
-  c->access_flags = ENDIAN_16(c->access_flags);
+  c->access_flags = ntohs(c->access_flags);
   printf("access flags: %d\n", c->access_flags);
 
   READ_FIELD(f, c->this_class, 2, "Trouble reading this_class");
-  c->this_class = ENDIAN_16(c->this_class);
+  c->this_class = ntohs(c->this_class);
   printf("this class: %d\n", c->this_class);
 
   READ_FIELD(f, c->super_class, 2, "Trouble reading super_class");
-  c->super_class = ENDIAN_16(c->super_class);
+  c->super_class = ntohs(c->super_class);
   printf("super class: %d\n", c->super_class);
 
   READ_FIELD(f, c->interfaces_count, 2, "Trouble reading interfaces_count");
-  c->interfaces_count = ENDIAN_16(c->interfaces_count);
+  c->interfaces_count = ntohs(c->interfaces_count);
   printf("interfaces count: %d\n", c->interfaces_count);
 
   c->interfaces = calloc(c->interfaces_count, sizeof(uint16_t));
   i = 0;
   while (i < c->interfaces_count) {
     READ_FIELD(f, c->interfaces[i], 2, "Trouble getting interface");
-    c->interfaces[i] = ENDIAN_16(c->interfaces[i]);
+    c->interfaces[i] = ntohs(c->interfaces[i]);
     printf("\t%d", c->interfaces[i]);
     i++;
   }
 
   READ_FIELD(f, c->fields_count, 2, "Trouble reading fields_count");
-  c->fields_count = ENDIAN_16(c->fields_count);
+  c->fields_count = ntohs(c->fields_count);
   printf("fields count: %d\n", c->fields_count);
 
   return 0;
