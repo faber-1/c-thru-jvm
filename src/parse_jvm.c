@@ -12,8 +12,80 @@
 
 void free_class_file(class_file *c);
 int parse_constant(FILE *f, cp_info *c);
+int parse_field(FILE *f, field_info *c);
+int parse_attribute(FILE *f, attribute_info *c);
+int parse_method(FILE *f, method_info *c);
 int parse_class_file(FILE *f, class_file *c);
+void free_class_info(class_file *c);
 
+void free_class_info(class_file *c) {
+  // TODO constant_pool
+  //    utf-8 clears
+  // TODO field_info
+  //    attribute clears
+  // TODO method_info
+  //    attribute clears
+  // TODO class attributes
+}
+
+// TODO
+int parse_method(FILE *f, method_info *c) {
+  return 0;
+}
+
+int parse_attribute(FILE *f, attribute_info *c) {
+  int i;
+  READ_FIELD(f, c->attribute_name_index, 2,
+             "Trouble getting attribute_name_index in attribute");
+  c->attribute_name_index = ntohs(c->attribute_name_index);
+
+  READ_FIELD(f, c->attribute_length, 4,
+             "Trouble getting attribute_length in attribute");
+  c->attribute_length = ntohl(c->attribute_length);
+
+  c->info = calloc(c->attribute_length, sizeof(uint8_t));
+  i = 0;
+  while (i < c->attribute_length) {
+    READ_FIELD(f, c->info[i], 1, "Trouble reading info from attribute");
+    i++;
+  }
+  return 0;
+}
+
+int parse_field(FILE *f, field_info *c) {
+  int i;
+  // get access flag
+  READ_FIELD(f, c->access_flags, 2, "Trouble getting access_flag in field");
+  c->access_flags = ntohs(c->access_flags);
+
+  // get name index
+  READ_FIELD(f, c->name_index, 2, "Trouble getting name_index in field");
+  c->name_index = ntohs(c->name_index);
+
+  // get descriptor index
+  READ_FIELD(f, c->descriptor_index, 2,
+             "Trouble getting descriptor_index in field");
+  c->descriptor_index = ntohs(c->descriptor_index);
+
+  // get attributes count
+  READ_FIELD(f, c->attributes_count, 2,
+             "Trouble getting attributes_count in field");
+  c->attributes_count = ntohs(c->attributes_count);
+
+  // get attributes
+  c->attributes = calloc(c->attributes_count, sizeof(attribute_info));
+  i = 0;
+  while (i < c->attributes_count) {
+    if (parse_attribute(f, &c->attributes[i]) != 0) {
+      fprintf(stderr, "Trouble reading attributes\n");
+      return 1;
+    }
+    i++;
+  }
+  return 0;
+}
+
+// parse constant pool items
 int parse_constant(FILE *f, cp_info *c) {
   READ_FIELD(f, c->generic_cp_info.tag, 1, "Trouble getting constant tag");
 
@@ -79,15 +151,19 @@ int parse_constant(FILE *f, cp_info *c) {
     printf("\t\tstring index: %d\n", c->CONSTANT_String.string_index);
     break;
   case 3: // CONSTANT_Integer
+    // TODO
     fprintf(stderr, "Tag not implemented: %d\n", c->generic_cp_info.tag);
     exit(0);
   case 4: // CONSTANT_Float
+    // TODO
     fprintf(stderr, "Tag not implemented: %d\n", c->generic_cp_info.tag);
     exit(0);
   case 5: // CONSTANT_Long
+    // TODO
     fprintf(stderr, "Tag not implemented: %d\n", c->generic_cp_info.tag);
     exit(0);
   case 6: // CONSTANT_Double
+    // TODO
     fprintf(stderr, "Tag not implemented: %d\n", c->generic_cp_info.tag);
     exit(0);
   case 12: // CONSTANT_NameAndType
@@ -123,12 +199,15 @@ int parse_constant(FILE *f, cp_info *c) {
 
     break;
   case 15: // CONSTANT_MethodHandle
+    // TODO
     fprintf(stderr, "Tag not implemented: %d\n", c->generic_cp_info.tag);
     exit(0);
   case 16: // CONSTANT_MethodType
+    // TODO
     fprintf(stderr, "Tag not implemented: %d\n", c->generic_cp_info.tag);
     exit(0);
   case 18: // CONSTANT_InvokeDynamic
+    // TODO
     fprintf(stderr, "Tag not implemented: %d\n", c->generic_cp_info.tag);
     exit(0);
   default:
@@ -185,18 +264,22 @@ int parse_class_file(FILE *f, class_file *c) {
     i++;
   }
 
+  // get access flags
   READ_FIELD(f, c->access_flags, 2, "Trouble reading access_flags");
   c->access_flags = ntohs(c->access_flags);
   printf("access flags: %d\n", c->access_flags);
 
+  // get this class
   READ_FIELD(f, c->this_class, 2, "Trouble reading this_class");
   c->this_class = ntohs(c->this_class);
   printf("this class: %d\n", c->this_class);
 
+  // get super class
   READ_FIELD(f, c->super_class, 2, "Trouble reading super_class");
   c->super_class = ntohs(c->super_class);
   printf("super class: %d\n", c->super_class);
 
+  // get interfaces count and interfaces
   READ_FIELD(f, c->interfaces_count, 2, "Trouble reading interfaces_count");
   c->interfaces_count = ntohs(c->interfaces_count);
   printf("interfaces count: %d\n", c->interfaces_count);
@@ -210,9 +293,25 @@ int parse_class_file(FILE *f, class_file *c) {
     i++;
   }
 
+  // get fields count
   READ_FIELD(f, c->fields_count, 2, "Trouble reading fields_count");
   c->fields_count = ntohs(c->fields_count);
   printf("fields count: %d\n", c->fields_count);
+
+  // get fields
+  i = 0;
+  while (i < c->fields_count) {
+    if (parse_field(f, &c->fields[i]) != 0) {
+      fprintf(stderr, "Trouble reading fields");
+      return 1;
+    }
+    i++;
+  }
+
+  READ_FIELD(f, c->methods_count, 2, "Trouble getting methods_count");
+  c->methods_count = ntohs(c->methods_count);
+
+  // TODO methods attributes_count attributes
 
   return 0;
 }
